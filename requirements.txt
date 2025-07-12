@@ -48,3 +48,10 @@ loguru==0.7.2
 
 # Serialización mejorada
 msgpack==1.0.7
+
+# Librerías adicionales según INTRUCCIONES_INIT.md
+# Para manejo de Markdown y extracción avanzada
+markdown==3.4.4
+
+# Para soporte de Tesseract OCR
+ocrmypdf==13.6.0
