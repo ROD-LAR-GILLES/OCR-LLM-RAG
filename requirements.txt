@@ -1,0 +1,50 @@
+# PDF Processing y LLM-optimized extraction
+pymupdf4llm==0.0.5
+PyMuPDF==1.23.24
+pdfplumber==0.10.3
+
+# OCR y PDF (legacy - opcional para casos específicos)
+pytesseract==0.3.10
+pdf2image==1.17.0
+PyPDF2==3.0.1
+Pillow==10.3.0
+
+# Procesamiento de imagen y visión por computadora
+opencv-python==4.10.0.82
+opencv-contrib-python==4.10.0.82
+numpy==1.24.3
+scikit-image==0.22.0
+imutils==0.5.4
+
+# Corrección de texto y análisis lingüístico
+pyspellchecker==0.8.1
+textdistance==4.6.2
+langdetect==1.0.9
+
+# Machine Learning y análisis de calidad
+scikit-learn==1.3.2
+scipy==1.11.4
+
+# Tablas y datos
+tabulate==0.9.0
+pandas==2.2.2
+openpyxl==3.1.2
+
+# Interfaz de usuario y menús
+questionary==2.0.1
+
+# Utilidades
+tqdm==4.66.1
+
+# Pruebas y desarrollo
+pytest==7.4.0
+pytest-cov==4.1.0
+black==23.12.1
+flake8==6.1.0
+
+# Configuración y logging
+pyyaml==6.0.1
+loguru==0.7.2
+
+# Serialización mejorada
+msgpack==1.0.7

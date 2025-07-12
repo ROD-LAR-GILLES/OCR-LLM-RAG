@@ -1,0 +1,60 @@
+# docker-compose.llm.yml
+# Docker Compose específico para PDF-to-LLM con pymupdf4llm
+version: '3.8'
+
+services:
+  pdf-to-llm:
+    build:
+      context: .
+      dockerfile: Dockerfile.llm
+    container_name: pdf-to-llm-processor
+    
+    # Volúmenes para entrada y salida
+    volumes:
+      - ./pdfs:/app/pdfs:ro          # PDFs de entrada (solo lectura)
+      - ./resultado:/app/resultado   # Resultados de salida
+      - ./logs:/app/logs            # Logs de procesamiento
+    
+    # Variables de entorno específicas para LLM
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PROCESSOR_TYPE=llm
+      - DEFAULT_CHUNK_SIZE=1000
+      - DEFAULT_USE_CASE=rag
+    
+    # Configuración de recursos
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    
+    # Reinicio automático
+    restart: unless-stopped
+    
+    # Comando interactivo
+    stdin_open: true
+    tty: true
+    
+    # Configuración de logs
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# Red para futuras extensiones (API, base de datos)
+networks:
+  default:
+    name: pdf-llm-network
+    driver: bridge
+
+# Volúmenes nombrados para persistencia
+volumes:
+  pdf_input:
+    driver: local
+  llm_output:
+    driver: local

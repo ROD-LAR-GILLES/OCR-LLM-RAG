@@ -1,0 +1,65 @@
+# Dockerfile.llm
+# Dockerfile específico para la aplicación PDF-to-LLM con pymupdf4llm
+FROM python:3.11-slim
+
+# Metadatos de la imagen
+LABEL maintainer="PDF-to-LLM"
+LABEL description="Procesador de PDFs optimizado para modelos de lenguaje usando pymupdf4llm"
+LABEL version="1.0.0"
+
+# Variables de entorno
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Instalar dependencias del sistema para pymupdf4llm
+RUN apt-get update && apt-get install -y \
+    # Dependencias básicas
+    gcc \
+    g++ \
+    make \
+    # Dependencias para PyMuPDF
+    libfreetype6-dev \
+    libjpeg-dev \
+    libopenjp2-7-dev \
+    libtiff5-dev \
+    libxml2-dev \
+    libxslt1-dev \
+    zlib1g-dev \
+    # Utilidades
+    curl \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# Crear directorio de trabajo
+WORKDIR /app
+
+# Copiar requirements específicos para LLM
+COPY requirements.txt .
+
+# Instalar dependencias Python con optimizaciones para LLM
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Crear estructura de directorios
+RUN mkdir -p /app/pdfs /app/resultado /app/logs
+
+# Copiar código fuente
+COPY . /app/
+
+# Configurar permisos
+RUN chmod +x /app/interfaces/cli/llm_main.py
+
+# Crear usuario no root para seguridad
+RUN adduser --disabled-password --gecos '' appuser && \
+    chown -R appuser:appuser /app
+USER appuser
+
+# Exponer puerto (para futuras extensiones API)
+EXPOSE 8000
+
+# Comando por defecto optimizado para LLM
+CMD ["python", "/app/interfaces/cli/llm_main.py"]
+
+# Healthcheck básico
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import pymupdf4llm; print('OK')" || exit 1

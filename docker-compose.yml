@@ -1,0 +1,9 @@
+services:
+  ocr-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./pdfs:/app/pdfs         
+      - ./resultado:/app/resultado
+    tty: true              
