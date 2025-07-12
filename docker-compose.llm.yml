@@ -12,7 +12,7 @@ services:
     volumes:
       - ./pdfs:/app/pdfs:ro          # PDFs de entrada (solo lectura)
       - ./resultado:/app/resultado   # Resultados de salida
-      - ./logs:/app/logs            # Logs de procesamiento
+      - ./logs:/app/logs             # Logs de procesamiento
     
     # Variables de entorno específicas para LLM
     environment:

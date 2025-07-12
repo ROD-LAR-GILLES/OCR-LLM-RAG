@@ -18,8 +18,8 @@ from typing import Dict, Any, Optional, List
 import logging
 from dataclasses import dataclass
 
-from application.llm_use_cases import ProcessDocumentForLLM
-from application.ports import LLMDocumentPort, StoragePort
+from src.application.llm_use_cases import ProcessDocumentForLLM
+from src.application.ports import LLMDocumentPort, StoragePort
 from adapters.llm_pymupdf4llm_adapter import PyMuPDF4LLMAdapter
 from adapters.storage_filesystem import FileStorage
 

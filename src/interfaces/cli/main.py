@@ -1,44 +1,73 @@
-# interfaces/cli/main.py
-"""
-Punto de entrada principal para la aplicación CLI de OCR-CLI.
+import sys
+import os
+from pathlib import Path
 
-Este módulo actúa como bootstrap de la aplicación, proporcionando
-un punto de entrada limpio y separando las responsabilidades entre
-la inicialización de la aplicación y la lógica de la interfaz.
+sys.path.insert(0, '/app/src')
+sys.path.insert(0, '/app')
 
-Principios aplicados:
-- Single Responsibility: Solo se encarga de inicializar la aplicación
-- Separation of Concerns: Lógica de interfaz separada en menu.py
-- Clean Entry Point: Punto de entrada claro y simple
+import questionary
+from src.adapters.llm_pymupdf4llm_adapter import PyMuPDF4LLMAdapter
+from src.utils.file_utils import discover_pdf_files
+from src.interfaces.cli.llm_menu import process_ocr_classic_document
 
-Arquitectura de entrada:
-main.py (bootstrap) -> menu.py (interfaz) -> use_cases.py (lógica) -> adaptadores (implementación)
-"""
-from interfaces.cli.menu import main
+PDF_DIR = Path("/app/pdfs")
+OUT_DIR = Path("/app/resultado")
+
+def convert_pdf_to_markdown() -> None:
+    pdf_files = [PDF_DIR / f for f in discover_pdf_files(PDF_DIR)]
+    if not pdf_files:
+        print("[ERROR] No se encontraron archivos PDF en el directorio.")
+        print(f"   Coloca tus archivos PDF en: {PDF_DIR}")
+        return
+    choices = [questionary.Choice(f"{i+1}. {p.name}", p) for i, p in enumerate(pdf_files)]
+    choices.append(questionary.Choice(f"{len(pdf_files)+1}. Salir", None))
+    selected = questionary.select(
+        "Selecciona el archivo PDF a convertir a Markdown:",
+        choices=choices,
+        instruction="Usa ↑↓ para navegar, Enter para seleccionar"
+    ).ask()
+    if selected is None:
+        return
+    adapter = PyMuPDF4LLMAdapter()
+    try:
+        result = adapter.extract_markdown(str(selected))
+        output_file = OUT_DIR / (selected.stem + ".md")
+        with open(output_file, "w", encoding="utf-8") as f:
+            f.write(result)
+        print(f"[OK] Conversión completada. Markdown guardado en: {output_file}")
+    except Exception as e:
+        print(f"[ERROR] Error al convertir el PDF: {e}")
+
+def main_menu() -> None:
+    print("\n" + "="*60)
+    print("OCR-LLM-RAG - Menú Principal")
+    print("="*60)
+    while True:
+        try:
+            choice = questionary.select(
+                "¿Qué deseas hacer?",
+                choices=[
+                    questionary.Choice("Convertir PDF a Markdown (PyMuPDF4LLM)", "markdown"),
+                    questionary.Choice("Procesar PDF con OCR clásico (Tesseract/OpenCV)", "ocr_classic"),
+                    # Puedes agregar aquí más opciones de configuración avanzada si aplica
+                    questionary.Choice("Salir", "exit")
+                ],
+                instruction="Usa ↑↓ para navegar, Enter para seleccionar"
+            ).ask()
+            if choice == "markdown":
+                convert_pdf_to_markdown()
+            elif choice == "ocr_classic":
+                process_ocr_classic_document()
+            elif choice == "exit":
+                print("\nHasta luego!")
+                break
+            else:
+                print("\n[WARNING] Opción no válida")
+        except KeyboardInterrupt:
+            print("\n\nHasta luego!")
+            break
+        except Exception as e:
+            print(f"\n[ERROR] Error en el menú: {str(e)}")
 
 if __name__ == "__main__":
-    """
-    Entry point de la aplicación CLI cuando se ejecuta como script principal.
-    
-    Este patrón de entry point es una práctica estándar en Python que:
-    - Permite importar el módulo sin ejecutar código automáticamente
-    - Proporciona un punto de entrada claro cuando se ejecuta directamente
-    - Facilita testing al permitir importar sin ejecutar main()
-    
-    Formas de ejecución:
-    1. Directa: python interfaces/cli/main.py
-    2. Como módulo: python -m interfaces.cli.main
-    3. Docker: CMD especificado en Dockerfile
-    
-    La separación main.py -> menu.py permite:
-    - Testing: Importar menu sin ejecutar la aplicación
-    - Reutilización: Usar menu.main() desde otros contextos
-    - Flexibilidad: Agregar lógica de inicialización sin afectar la interfaz
-    
-    Future enhancements:
-    - Argument parsing con argparse o click
-    - Configuración via variables de entorno
-    - Logging setup y configuración
-    - Profile selection (development, production, testing)
-    """
-    main()
+    main_menu()

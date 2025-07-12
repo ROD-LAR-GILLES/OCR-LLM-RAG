@@ -1,9 +1,6 @@
 # interfaces/cli/llm_main.py
 """
-Punto de entrada principa        print("[ERROR] Dependencias faltantes:")
-        for dep in missing_deps:
-            print(f"  - {dep}")
-        print("\n[INFO] Instala las dependencias con:")ra la aplicación LLM-CLI con pymupdf4llm.
+Punto de entrada principal para la aplicación LLM-CLI con pymupdf4llm.
 
 Este módulo actúa como bootstrap de la aplicación optimizada para
 modelos de lenguaje, proporcionando un punto de entrada específico
@@ -16,8 +13,12 @@ Diferencias con main.py tradicional:
 - Mejor feedback para usuarios de sistemas RAG
 """
 import sys
+import os
 import logging
 from pathlib import Path
+
+# Asegurarnos de que /app está en el PYTHONPATH
+sys.path.append('/app')
 
 # Configurar logging básico
 logging.basicConfig(
@@ -26,12 +27,15 @@ logging.basicConfig(
 )
 
 try:
-    from interfaces.cli.llm_menu import main_llm_menu
+    from src.interfaces.cli.llm_menu import main_llm_menu
 except ImportError as e:
-    print(f"[ERROR] Error importando dependencias: {e}")
-    print("[INFO] Asegúrate de que todas las dependencias estén instaladas:")
-    print("   pip install pymupdf4llm questionary")
-    sys.exit(1)
+    try:
+        from interfaces.cli.llm_menu import main_llm_menu
+    except ImportError:
+        print(f"[ERROR] Error importando dependencias: {e}")
+        print("[INFO] Asegúrate de que todas las dependencias estén instaladas:")
+        print("   pip install pymupdf4llm questionary")
+        sys.exit(1)
 
 
 def check_dependencies() -> bool:
@@ -59,10 +63,10 @@ def check_dependencies() -> bool:
         missing_deps.append("pandas")
     
     if missing_deps:
-        print("❌ Dependencias faltantes:")
+        print("Dependencias faltantes:")
         for dep in missing_deps:
-            print(f"   • {dep}")
-        print("\n💡 Instala las dependencias con:")
+            print(f"   - {dep}")
+        print("Instala las dependencias con:")
         print(f"   pip install {' '.join(missing_deps)}")
         return False
     
@@ -94,8 +98,8 @@ def check_directories() -> bool:
     if issues:
         print("[WARNING] Problemas con directorios:")
         for issue in issues:
-            print(f"   • {issue}")
-        print("\n[INFO] Si usas Docker, verifica que los volúmenes estén montados:")
+            print(f"   - {issue}")
+        print("Si usas Docker, verifica que los volúmenes estén montados:")
         print("   docker-compose up --build")
         return False
     
@@ -124,7 +128,7 @@ def main():
         main_llm_menu()
         
     except KeyboardInterrupt:
-        print("\n\n👋 Aplicación terminada por el usuario")
+        print("\n\nAplicación terminada por el usuario")
     except Exception as e:
         print(f"\n[ERROR] Error crítico en la aplicación: {e}")
         logging.exception("Error crítico en main()")

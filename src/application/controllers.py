@@ -13,7 +13,7 @@ from adapters.ocr_tesseract import TesseractAdapter
 from adapters.ocr_tesseract_opencv import TesseractOpenCVAdapter
 from adapters.table_pdfplumber import PdfPlumberAdapter
 from adapters.storage_filesystem import FileStorage
-from application.use_cases import ProcessDocument
+from src.application.use_cases import ProcessDocument
 from utils.menu_logic import OCRConfig
 
 

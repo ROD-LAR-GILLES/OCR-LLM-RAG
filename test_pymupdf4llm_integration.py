@@ -34,7 +34,7 @@ def test_imports():
         return False
     
     try:
-        from application.llm_controllers import LLMDocumentController, LLMProcessingConfig
+        from src.application.llm_controllers import LLMDocumentController, LLMProcessingConfig
         print("[OK] LLMDocumentController disponible")
     except ImportError as e:
         print(f"[ERROR] LLMDocumentController no disponible: {e}")
@@ -70,7 +70,7 @@ def test_controller_configs():
     print("\n[TEST] Probando configuraciones predefinidas...")
     
     try:
-        from application.llm_controllers import LLMDocumentController, LLMProcessingConfig
+        from src.application.llm_controllers import LLMDocumentController, LLMProcessingConfig
         
         # Crear controlador con directorio temporal
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -120,7 +120,7 @@ def test_with_sample_pdf():
     print(f"📄 Usando PDF de muestra: {sample_pdf.name}")
     
     try:
-        from application.llm_controllers import LLMDocumentController, LLMProcessingConfig
+        from src.application.llm_controllers import LLMDocumentController, LLMProcessingConfig
         
         # Crear controlador con directorio temporal
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -260,10 +260,10 @@ def main():
     print('='*60)
     
     if passed == total:
-        print("🎉 ¡Todas las pruebas pasaron! La integración pymupdf4llm está lista.")
+        print("¡Todas las pruebas pasaron! La integración pymupdf4llm está lista.")
         return 0
     else:
-        print("⚠️ Algunas pruebas fallaron. Revisar la configuración.")
+        print(" Algunas pruebas fallaron. Revisar la configuración.")
         return 1
 
 if __name__ == "__main__":

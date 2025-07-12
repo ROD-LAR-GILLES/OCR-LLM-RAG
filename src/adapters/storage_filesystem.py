@@ -13,7 +13,7 @@ import pandas as pd
 from tabulate import tabulate
 from datetime import datetime
 
-from application.ports import StoragePort
+from src.application.ports import StoragePort
 
 
 class FileStorage(StoragePort):

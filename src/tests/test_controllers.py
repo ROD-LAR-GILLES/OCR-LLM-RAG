@@ -9,7 +9,7 @@ from unittest.mock import Mock, patch, MagicMock
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from application.controllers import DocumentController
+from src.application.controllers import DocumentController
 from utils.menu_logic import OCRConfig
 
 

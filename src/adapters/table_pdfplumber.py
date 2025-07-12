@@ -12,7 +12,7 @@ from typing import List
 import pdfplumber
 import pandas as pd
 
-from application.ports import TableExtractorPort
+from src.application.ports import TableExtractorPort
 
 
 class PdfPlumberAdapter(TableExtractorPort):

@@ -6,4 +6,5 @@ services:
     volumes:
       - ./pdfs:/app/pdfs         
       - ./resultado:/app/resultado
-    tty: true              
+    tty: true
+    command: python /app/start_llm.py

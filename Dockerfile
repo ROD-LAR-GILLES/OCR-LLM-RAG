@@ -23,4 +23,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["python", "interfaces/cli/main.py"]
+# Aseguramos que el entorno puede encontrar los módulos correctamente
+CMD ["python", "/app/src/interfaces/cli/llm_main.py"]

@@ -21,8 +21,12 @@ try:
 except ImportError:
     raise ImportError("questionary es requerido. Instálalo con: pip install questionary")
 
-from utils.file_utils import discover_pdf_files, validate_pdf_exists
-from application.llm_controllers import LLMDocumentController, LLMProcessingConfig
+# Importar con rutas relativas para evitar problemas de PYTHONPATH
+import sys
+import os
+sys.path.append('/app')  # Aseguramos que /app está en el PYTHONPATH
+from src.utils.file_utils import discover_pdf_files, validate_pdf_exists
+from src.application.llm_controllers import LLMDocumentController, LLMProcessingConfig
 
 
 # Configuración de directorios
@@ -37,10 +41,10 @@ def display_llm_welcome() -> None:
     print("Convierte PDFs a formato markdown estructurado usando pymupdf4llm")
     print("="*60)
     print("\nCasos de uso soportados:")
-    print("   • RAG Systems (Retrieval-Augmented Generation)")
-    print("   • Vector Databases y Embeddings")
-    print("   • Análisis automatizado por LLMs")
-    print("   • Búsqueda semántica e indexación")
+    print("   - RAG Systems (Retrieval-Augmented Generation)")
+    print("   - Vector Databases y Embeddings")
+    print("   - Análisis automatizado por LLMs")
+    print("   - Búsqueda semántica e indexación")
     print("\nTecnología: pymupdf4llm + arquitectura hexagonal")
     print("-"*60)
 
@@ -52,7 +56,7 @@ def select_use_case() -> str:
     Returns:
         str: Caso de uso seleccionado ('rag', 'embeddings', 'analysis')
     """
-    print("\n🎯 Selecciona el caso de uso objetivo:")
+    print("\n Selecciona el caso de uso objetivo:")
     
     use_case = questionary.select(
         "¿Para qué vas a usar el contenido procesado?",
@@ -62,19 +66,19 @@ def select_use_case() -> str:
                 value="rag"
             ),
             questionary.Choice(
-                title="🧮 Vector Database / Embeddings",
+                title="Vector Database / Embeddings",
                 value="embeddings"
             ),
             questionary.Choice(
-                title="🔬 Análisis por LLMs",
+                title="Análisis por LLMs",
                 value="analysis"
             ),
             questionary.Choice(
-                title="⚙️ Configuración personalizada",
+                title="Configuración personalizada",
                 value="custom"
             ),
             questionary.Choice(
-                title="🔙 Volver al menú principal",
+                title="Volver al menú principal",
                 value="exit"
             )
         ],
@@ -91,7 +95,7 @@ def configure_custom_settings() -> LLMProcessingConfig:
     Returns:
         LLMProcessingConfig: Configuración personalizada
     """
-    print("\n⚙️ Configuración personalizada:")
+    print("\n Configuración personalizada:")
     
     # Tamaño de chunk
     chunk_size = questionary.text(
@@ -160,30 +164,24 @@ def select_pdf_file() -> Optional[Path]:
     print(f"\nBuscando archivos PDF en: {PDF_DIR}")
     
     try:
-        pdf_files = discover_pdf_files(PDF_DIR)
-        
+        pdf_files = [PDF_DIR / f for f in discover_pdf_files(PDF_DIR)]
         if not pdf_files:
             print("[ERROR] No se encontraron archivos PDF en el directorio.")
             print(f"   Coloca tus archivos PDF en: {PDF_DIR}")
             return None
-            
         print(f"[OK] Encontrados {len(pdf_files)} archivos PDF")
-        
         # Crear opciones para el menú
         choices = []
         for pdf_file in pdf_files:
             file_size = pdf_file.stat().st_size / (1024 * 1024)  # MB
-            title = f"📄 {pdf_file.name} ({file_size:.1f} MB)"
+            title = f" {pdf_file.name} ({file_size:.1f} MB)"
             choices.append(questionary.Choice(title, pdf_file))
-        
-        choices.append(questionary.Choice("🔙 Volver al menú principal", None))
-        
+        choices.append(questionary.Choice("Volver al menú principal", None))
         selected = questionary.select(
             "Selecciona el archivo PDF a procesar:",
             choices=choices,
             instruction="Usa ↑↓ para navegar, Enter para seleccionar"
         ).ask()
-        
         return selected
         
     except Exception as e:
@@ -243,14 +241,14 @@ def display_results(result: Dict[str, Any]) -> None:
     # Distribución por secciones
     sections_dist = chunk_info.get("sections_distribution", {})
     if sections_dist:
-        print(f"\n📑 Distribución por secciones:")
+        print(f"\n Distribución por secciones:")
         for section, count in list(sections_dist.items())[:5]:  # Mostrar top 5
             section_name = section if len(section) <= 40 else section[:37] + "..."
             print(f"   • {section_name}: {count} chunks")
     
     # Archivos generados
     files_generated = result.get("files_generated", [])
-    print(f"\n📁 Archivos generados ({len(files_generated)}):")
+    print(f"\n Archivos generados ({len(files_generated)}):")
     for file_path in files_generated[:10]:  # Mostrar primeros 10
         file_name = Path(file_path).name
         print(f"   • {file_name}")
@@ -325,41 +323,32 @@ def process_single_document() -> None:
 
 def process_batch_documents() -> None:
     """Flujo para procesar múltiples documentos en lote."""
-    print(f"\n📁 Buscando archivos PDF en: {PDF_DIR}")
+    print(f"\n Buscando archivos PDF en: {PDF_DIR}")
     
     try:
-        pdf_files = discover_pdf_files(PDF_DIR)
-        
+        pdf_files = [PDF_DIR / f for f in discover_pdf_files(PDF_DIR)]
         if not pdf_files:
             print("[ERROR] No se encontraron archivos PDF en el directorio.")
             return
-            
         print(f"[OK] Encontrados {len(pdf_files)} archivos PDF")
-        
         # Confirmar procesamiento en lote
         confirm = questionary.confirm(
             f"¿Procesar todos los {len(pdf_files)} archivos PDF?",
             default=False
         ).ask()
-        
         if not confirm:
             return
-        
         # Seleccionar configuración
         use_case = select_use_case()
         if use_case == "exit":
             return
-        
         controller = LLMDocumentController(OUT_DIR)
-        
         if use_case == "custom":
             config = configure_custom_settings()
         else:
             config = controller.get_recommended_config(use_case)
-        
-        print(f"\n🔄 Procesando {len(pdf_files)} documentos...")
-        print("⏳ Esto puede tomar varios minutos...")
-        
+        print(f"\n Procesando {len(pdf_files)} documentos...")
+        print(" Esto puede tomar varios minutos...")
         # Procesar en lote
         batch_result = controller.process_multiple_documents(pdf_files, config)
         display_batch_results(batch_result)
@@ -391,55 +380,154 @@ def show_statistics() -> None:
             print(f"   • {file_name}")
 
 
+def process_ocr_classic_document() -> None:
+    """
+    Flujo para procesar un documento PDF usando el OCR clásico (Tesseract básico o Tesseract+OpenCV).
+    """
+    from src.utils.menu_logic import (
+        create_pdf_menu_options,
+        get_selected_pdf,
+        is_exit_selection,
+        create_ocr_config_from_user_choices,
+        validate_ocr_engine_choice,
+        OCRConfig
+    )
+    from src.application.controllers import DocumentController
+
+    # Descubrir archivos PDF
+    pdf_files = discover_pdf_files(PDF_DIR)
+    if not pdf_files:
+        print("[ERROR] No se encontraron archivos PDF en el directorio.")
+        print(f"   Coloca tus archivos PDF en: {PDF_DIR}")
+        return
+
+    # Seleccionar archivo
+    choices = [questionary.Choice(f"{i+1}. {name}", name) for i, name in enumerate(pdf_files)]
+    choices.append(questionary.Choice(f"{len(pdf_files)+1}. Salir", None))
+    selected = questionary.select(
+        "Selecciona el archivo PDF a procesar:",
+        choices=choices,
+        instruction="Usa ↑↓ para navegar, Enter para seleccionar"
+    ).ask()
+    if selected is None:
+        return
+
+    # Selección de motor OCR
+    ocr_choice = questionary.select(
+        "Selecciona el motor de OCR:",
+        choices=[
+            questionary.Choice("1. Tesseract básico (rápido)", 1),
+            questionary.Choice("2. Tesseract + OpenCV (alta calidad)", 2),
+            questionary.Choice("3. Volver al menú principal", 3)
+        ]
+    ).ask()
+    if ocr_choice == 3:
+        return
+
+    # Configuración avanzada si OpenCV
+    if ocr_choice == 2:
+        adv = questionary.confirm("¿Configurar opciones avanzadas de preprocesamiento?", default=False).ask()
+        if adv:
+            enable_deskewing = questionary.confirm("¿Corregir inclinación del documento?", default=True).ask()
+            enable_denoising = questionary.confirm("¿Aplicar eliminación de ruido?", default=True).ask()
+            enable_contrast = questionary.confirm("¿Mejorar contraste automáticamente?", default=True).ask()
+            ocr_config = create_ocr_config_from_user_choices(2, enable_deskewing, enable_denoising, enable_contrast)
+        else:
+            ocr_config = create_ocr_config_from_user_choices(2)
+    else:
+        ocr_config = create_ocr_config_from_user_choices(1)
+
+    # Mostrar configuración seleccionada
+    if ocr_config.engine_type == "basic":
+        print("Usando Tesseract básico.")
+    else:
+        print("Usando Tesseract + OpenCV con preprocesamiento avanzado.")
+        print(f"   - Corrección de inclinación: {'SI' if ocr_config.enable_deskewing else 'NO'}")
+        print(f"   - Eliminación de ruido: {'SI' if ocr_config.enable_denoising else 'NO'}")
+        print(f"   - Mejora de contraste: {'SI' if ocr_config.enable_contrast_enhancement else 'NO'}")
+
+    # Procesamiento
+    print(f"\nIniciando procesamiento de {selected}.")
+    controller = DocumentController(PDF_DIR, OUT_DIR)
+    success, processing_info = controller.process_document(selected, ocr_config)
+    if success:
+        print(f"\n{processing_info['filename']} procesado exitosamente!")
+        print(f"Tiempo de procesamiento: {processing_info['processing_time']:.2f} segundos")
+        print(f"Archivos generados: {processing_info['files_count']}")
+        print(f"   - Texto principal: {processing_info['main_text_file']}")
+        print(f"   - Todos los archivos: {processing_info['generated_files']}")
+        if processing_info['ocr_config'].engine_type == "opencv":
+            print("Preprocesamiento OpenCV aplicado con éxito")
+    else:
+        print(f"\nError procesando {processing_info['filename']}:")
+        print(f"   Error: {processing_info['error']}")
+        print(f"   Tiempo hasta error: {processing_info['processing_time']:.2f} segundos")
+        print("   Sugerencia: Prueba con el motor básico si el documento es de alta calidad")
+    print()
+
+
+def convert_pdf_to_markdown() -> None:
+    """
+    Convierte un PDF (digital o escaneado) a Markdown usando PyMuPDF4LLM.
+    """
+    from src.adapters.llm_pymupdf4llm_adapter import PyMuPDF4LLMAdapter
+    from pathlib import Path
+    import questionary
+
+    pdf_files = [PDF_DIR / f for f in discover_pdf_files(PDF_DIR)]
+    if not pdf_files:
+        print("[ERROR] No se encontraron archivos PDF en el directorio.")
+        print(f"   Coloca tus archivos PDF en: {PDF_DIR}")
+        return
+
+    choices = [questionary.Choice(f"{i+1}. {p.name}", p) for i, p in enumerate(pdf_files)]
+    choices.append(questionary.Choice(f"{len(pdf_files)+1}. Salir", None))
+    selected = questionary.select(
+        "Selecciona el archivo PDF a convertir a Markdown:",
+        choices=choices,
+        instruction="Usa ↑↓ para navegar, Enter para seleccionar"
+    ).ask()
+    if selected is None:
+        return
+
+    adapter = PyMuPDF4LLMAdapter()
+    try:
+        result = adapter.extract_markdown(str(selected))
+        output_file = OUT_DIR / (selected.stem + ".md")
+        with open(output_file, "w", encoding="utf-8") as f:
+            f.write(result)
+        print(f"[OK] Conversión completada. Markdown guardado en: {output_file}")
+    except Exception as e:
+        print(f"[ERROR] Error al convertir el PDF: {e}")
+
+
 def main_llm_menu() -> None:
-    """Menú principal para procesamiento LLM."""
-    display_llm_welcome()
-    
+    """Menú principal simplificado: solo conversión a Markdown y OCR clásico."""
+    print("\n" + "="*60)
+    print("PDF-to-Markdown - Conversión de PDF escaneado o digital a Markdown")
+    print("="*60)
     while True:
         try:
             choice = questionary.select(
-                "\n¿Qué deseas hacer?",
+                "¿Qué deseas hacer?",
                 choices=[
-                    questionary.Choice(
-                        "📄 Procesar un documento PDF",
-                        "single"
-                    ),
-                    questionary.Choice(
-                        "Procesar múltiples documentos (lote)",
-                        "batch"
-                    ),
-                    questionary.Choice(
-                        "[STATS] Ver estadísticas de procesamiento",
-                        "stats"
-                    ),
-                    questionary.Choice(
-                        "ℹ️ Información sobre casos de uso",
-                        "info"
-                    ),
-                    questionary.Choice(
-                        "🚪 Salir",
-                        "exit"
-                    )
+                    questionary.Choice("Convertir PDF a Markdown (PyMuPDF4LLM)", "markdown"),
+                    questionary.Choice("Procesar PDF con OCR clásico (Tesseract/OpenCV)", "ocr_classic"),
+                    questionary.Choice("Salir", "exit")
                 ],
                 instruction="Usa ↑↓ para navegar, Enter para seleccionar"
             ).ask()
-            
-            if choice == "single":
-                process_single_document()
-            elif choice == "batch":
-                process_batch_documents()
-            elif choice == "stats":
-                show_statistics()
-            elif choice == "info":
-                show_use_case_info()
+            if choice == "markdown":
+                convert_pdf_to_markdown()
+            elif choice == "ocr_classic":
+                process_ocr_classic_document()
             elif choice == "exit":
-                print("\n👋 ¡Hasta luego!")
+                print("\nHasta luego!")
                 break
             else:
                 print("\n[WARNING] Opción no válida")
-                
         except KeyboardInterrupt:
-            print("\n\n👋 ¡Hasta luego!")
+            print("\n\nHasta luego!")
             break
         except Exception as e:
             print(f"\n[ERROR] Error en el menú: {str(e)}")
@@ -447,32 +535,32 @@ def main_llm_menu() -> None:
 
 def show_use_case_info() -> None:
     """Muestra información detallada sobre los casos de uso."""
-    print("\n📚 Información sobre casos de uso:")
+    print("\n Información sobre casos de uso:")
     print("-" * 50)
     
     print("\n[INFO] Sistema RAG (Retrieval-Augmented Generation):")
-    print("   • Chunks de ~1000 caracteres con 20% de solapamiento")
-    print("   • Preserva estructura de encabezados para contexto")
-    print("   • Metadatos enriquecidos para mejor retrieval")
-    print("   • Ideal para: ChatGPT, Claude, sistemas de Q&A")
+    print("   - Chunks de ~1000 caracteres con 20% de solapamiento")
+    print("   - Preserva estructura de encabezados para contexto")
+    print("   - Metadatos enriquecidos para mejor retrieval")
+    print("   - Ideal para: ChatGPT, Claude, sistemas de Q&A")
     
-    print("\n🧮 Vector Database / Embeddings:")
-    print("   • Chunks más pequeños (~512 caracteres)")
-    print("   • Menor solapamiento para evitar redundancia")
-    print("   • Optimizado para modelos de embeddings")
-    print("   • Ideal para: búsqueda semántica, clustering")
+    print("\nVector Database / Embeddings:")
+    print("   - Chunks más pequeños (~512 caracteres)")
+    print("   - Menor solapamiento para evitar redundancia")
+    print("   - Optimizado para modelos de embeddings")
+    print("   - Ideal para: búsqueda semántica, clustering")
     
-    print("\n🔬 Análisis por LLMs:")
-    print("   • Chunks más grandes (~2000 caracteres)")
-    print("   • Incluye imágenes y elementos visuales")
-    print("   • Genera resúmenes automáticos")
-    print("   • Ideal para: análisis de contenido, extracción de insights")
+    print("\nAnálisis por LLMs:")
+    print("   - Chunks más grandes (~2000 caracteres)")
+    print("   - Incluye imágenes y elementos visuales")
+    print("   - Genera resúmenes automáticos")
+    print("   - Ideal para: análisis de contenido, extracción de insights")
     
     print("\n[INFO] Tecnología utilizada:")
-    print("   • pymupdf4llm: Extracción optimizada para LLMs")
-    print("   • Markdown estructurado con preservación de jerarquía")
-    print("   • Chunking semánticamente coherente")
-    print("   • Metadatos enriquecidos para contexto")
+    print("   - pymupdf4llm: Extracción optimizada para LLMs")
+    print("   - Markdown estructurado con preservación de jerarquía")
+    print("   - Chunking semánticamente coherente")
+    print("   - Metadatos enriquecidos para contexto")
 
 
 if __name__ == "__main__":

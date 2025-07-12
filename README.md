@@ -236,3 +236,67 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más det
 ---
 
 **OCR-LLM-RAG** - Convierte tus documentos en conocimiento consultable inteligentemente.
+
+## Flujo CLI Unificado y Arquitectura Hexagonal
+
+### Flujo CLI Unificado
+
+A partir de la versión actual, toda la interacción por línea de comandos (CLI) se realiza desde un **menú unificado** que permite:
+- Procesar documentos PDF con OCR clásico (Tesseract básico o Tesseract+OpenCV)
+- Procesar documentos optimizados para LLM/RAG/embeddings
+- Procesar múltiples documentos en lote
+- Consultar estadísticas y casos de uso
+
+**Para acceder al menú unificado:**
+
+```bash
+# Desde el contenedor Docker
+python start_llm.py
+# o
+python interfaces/cli/main.py
+# o
+python interfaces/cli/llm_main.py
+```
+
+Todas estas opciones abren el mismo menú interactivo, centralizando la experiencia de usuario.
+
+### Arquitectura Hexagonal en la CLI
+
+La CLI sigue estrictamente la arquitectura hexagonal:
+
+- **Interfaces (Entradas/Salidas):**
+  - Toda la interacción con el usuario (menús, prompts, selección de archivos) está en `src/interfaces/cli/llm_menu.py`.
+  - No hay lógica de negocio en la interfaz, solo orquestación y presentación.
+
+- **Application (Casos de uso y controladores):**
+  - La lógica de negocio y coordinación está en `src/application/controllers.py`, `llm_controllers.py`, y `use_cases.py`.
+  - El menú solo llama a los controladores y casos de uso, nunca implementa la lógica directamente.
+
+- **Domain (Dominio):**
+  - Modelos y reglas de negocio están en `src/domain/`.
+
+- **Adapters (Adaptadores):**
+  - Integraciones técnicas (PDF, OCR, almacenamiento) están en `src/adapters/`.
+
+- **Utils y lógica pura:**
+  - Lógica de menús y utilidades puras están en `src/utils/`, desacopladas de la interfaz.
+
+#### Ejemplo de flujo CLI (OCR clásico):
+
+1. **Usuario selecciona "Procesar PDF con OCR clásico" en el menú**
+2. CLI solicita archivo y configuración OCR (menú interactivo)
+3. CLI llama a `DocumentController` (application)
+4. `DocumentController` orquesta el procesamiento usando adaptadores y lógica de dominio
+5. Resultados y mensajes se muestran en la CLI
+
+#### Ejemplo de flujo CLI (LLM/RAG):
+
+1. **Usuario selecciona "Procesar un documento PDF (LLM/RAG)"**
+2. CLI solicita archivo y configuración de chunking/embeddings
+3. CLI llama a `LLMDocumentController` (application)
+4. `LLMDocumentController` orquesta el procesamiento usando adaptadores y lógica de dominio
+5. Resultados y recomendaciones se muestran en la CLI
+
+---
+
+**Esto garantiza que la CLI sea solo una "puerta de entrada" y que la lógica de negocio y adaptadores sean fácilmente testeables, intercambiables y mantenibles.**

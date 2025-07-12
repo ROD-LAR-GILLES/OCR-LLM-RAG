@@ -24,7 +24,7 @@ except ImportError:
         "Instálalo con: pip install pymupdf4llm"
     )
 
-from application.ports import OCRPort
+from src.application.ports import OCRPort
 
 
 class PyMuPDF4LLMAdapter(OCRPort):
