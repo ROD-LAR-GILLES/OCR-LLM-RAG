@@ -1,6 +1,6 @@
 # PDF Processing y LLM-optimized extraction
-pymupdf4llm==0.0.5
-PyMuPDF==1.23.24
+pymupdf4llm
+PyMuPDF==1.26.3
 pdfplumber==0.10.3
 
 # OCR y PDF (legacy - opcional para casos específicos)
@@ -42,6 +42,9 @@ flake8==6.1.0
 # Configuración y logging
 pyyaml==6.0.1
 loguru==0.7.2
+
+# Interface de usuario interactiva
+questionary==2.1.0
 
 # Serialización mejorada
 msgpack==1.0.7

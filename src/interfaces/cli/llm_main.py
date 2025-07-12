@@ -1,6 +1,9 @@
 # interfaces/cli/llm_main.py
 """
-Punto de entrada principal para la aplicación LLM-CLI con pymupdf4llm.
+Punto de entrada principa        print("[ERROR] Dependencias faltantes:")
+        for dep in missing_deps:
+            print(f"  - {dep}")
+        print("\n[INFO] Instala las dependencias con:")ra la aplicación LLM-CLI con pymupdf4llm.
 
 Este módulo actúa como bootstrap de la aplicación optimizada para
 modelos de lenguaje, proporcionando un punto de entrada específico
@@ -25,8 +28,8 @@ logging.basicConfig(
 try:
     from interfaces.cli.llm_menu import main_llm_menu
 except ImportError as e:
-    print(f"❌ Error importando dependencias: {e}")
-    print("💡 Asegúrate de que todas las dependencias estén instaladas:")
+    print(f"[ERROR] Error importando dependencias: {e}")
+    print("[INFO] Asegúrate de que todas las dependencias estén instaladas:")
     print("   pip install pymupdf4llm questionary")
     sys.exit(1)
 
@@ -123,7 +126,7 @@ def main():
     except KeyboardInterrupt:
         print("\n\n👋 Aplicación terminada por el usuario")
     except Exception as e:
-        print(f"\n❌ Error crítico en la aplicación: {e}")
+        print(f"\n[ERROR] Error crítico en la aplicación: {e}")
         logging.exception("Error crítico en main()")
         sys.exit(1)
 

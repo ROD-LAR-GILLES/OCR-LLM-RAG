@@ -14,10 +14,11 @@ Principios aplicados:
 - Command Pattern: Casos de uso como comandos ejecutables
 """
 from pathlib import Path
-from typing import Tuple, List, Any
+from typing import Tuple, List, Any, Optional, Dict, Literal
 
-from application.ports import OCRPort, TableExtractorPort, StoragePort
-from domain.models import Document
+from src.application.ports import OCRPort, TableExtractorPort, StoragePort
+from src.domain.models import Document
+from src.adapters.llm_pymupdf4llm_adapter import PyMuPDF4LLMAdapter
 
 
 class ProcessDocument:
@@ -155,3 +156,49 @@ class ProcessDocument:
         )
         
         return texto_principal, archivos_generados
+
+
+class ExtractDocumentUseCase:
+    """
+    Caso de uso para extraer contenido de documentos PDF utilizando
+    diferentes estrategias de extracción.
+    """
+    
+    def __init__(self, pymupdf_adapter: PyMuPDF4LLMAdapter):
+        self.pymupdf_adapter = pymupdf_adapter
+    
+    def execute(
+        self,
+        pdf_path: str,
+        output_format: Literal["markdown", "llama_documents"] = "markdown",
+        pages: Optional[List[int]] = None
+    ) -> Dict[str, Any]:
+        """
+        Ejecuta la extracción del documento según el formato solicitado.
+        
+        Args:
+            pdf_path: Ruta al archivo PDF a procesar
+            output_format: Formato de salida deseado ("markdown" o "llama_documents")
+            pages: Lista opcional de páginas a extraer (solo válido para markdown)
+            
+        Returns:
+            Diccionario con el resultado de la extracción y metadatos
+        """
+        result = {
+            "source": pdf_path,
+            "format": output_format,
+        }
+        
+        if output_format == "markdown":
+            content = self.pymupdf_adapter.extract_markdown(pdf_path, pages)
+            result["content"] = content
+            
+        elif output_format == "llama_documents":
+            documents = self.pymupdf_adapter.extract_llama_documents(pdf_path)
+            result["documents"] = documents
+            result["document_count"] = len(documents)
+            
+        else:
+            raise ValueError(f"Formato de salida no soportado: {output_format}")
+            
+        return result

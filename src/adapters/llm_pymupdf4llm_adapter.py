@@ -1,60 +1,58 @@
 # adapters/llm_pymupdf4llm_adapter.py
 """
-Adaptador LLM basado en pymupdf4llm para procesamiento optimizado.
-
-Este módulo implementa el puerto LLMDocumentPort utilizando pymupdf4llm,
-proporcionando extracción de contenido estructurado específicamente
-optimizado para modelos de lenguaje y sistemas RAG.
-
-Diferencias con el adaptador OCR tradicional:
-- Genera markdown estructurado en lugar de texto plano
-- Incluye metadatos ricos para sistemas RAG
-- Proporciona chunking semántico inteligente
-- Optimiza el formato para embeddings vectoriales
+Adaptador para pymupdf4llm que encapsula la funcionalidad de extracción de PDFs
+optimizada para LLMs.
 """
+from typing import List, Optional, Dict, Any
 from pathlib import Path
-from typing import Dict, Any, List, Optional
 import logging
-import json
 from datetime import datetime
-
-try:
-    import pymupdf4llm
-    import pymupdf
-except ImportError:
-    raise ImportError(
-        "pymupdf4llm y/o pymupdf no están instalados. "
-        "Instálalos con: pip install pymupdf4llm pymupdf"
-    )
-
-from application.ports import LLMDocumentPort
+import pymupdf4llm
+from loguru import logger
 
 
-class LLMPyMuPDF4LLMAdapter(LLMDocumentPort):
+class PyMuPDF4LLMAdapter:
     """
-    Adaptador LLM especializado para pymupdf4llm con funcionalidades avanzadas.
-    
-    Este adaptador está específicamente diseñado para sistemas que requieren
-    contenido optimizado para LLMs, incluyendo:
-    - Formato markdown estructurado
-    - Metadatos ricos para contexto
-    - Chunking semánticamente coherente
-    - Estadísticas detalladas del contenido
-    - Configuración flexible para diferentes casos de uso
-    
-    Casos de uso principales:
-    - **RAG Systems**: Preparación de documentos para Retrieval-Augmented Generation
-    - **Vector Databases**: Contenido optimizado para embeddings vectoriales
-    - **LLM Training**: Datasets estructurados para entrenamiento de modelos
-    - **Semantic Search**: Indexación optimizada para búsqueda semántica
-    - **Document Analysis**: Análisis automatizado por modelos de lenguaje
-    
-    Configuraciones especializadas:
-    - Chunk size adaptativo basado en estructura semántica
-    - Preservación de contexto entre chunks
-    - Extracción de metadatos enriquecidos
-    - Formato optimizado para embeddings
+    Adaptador para la biblioteca pymupdf4llm que convierte PDFs en formatos
+    optimizados para procesamiento con LLMs.
     """
+    
+    def extract_markdown(self, pdf_path: str, pages: Optional[List[int]] = None) -> str:
+        """
+        Extrae contenido de un PDF y lo convierte a formato Markdown.
+        
+        Args:
+            pdf_path: Ruta al archivo PDF
+            pages: Lista opcional de índices de páginas a extraer (base 0)
+            
+        Returns:
+            Contenido del PDF en formato Markdown
+        """
+        logger.info(f"Extrayendo Markdown de {pdf_path}")
+        try:
+            return pymupdf4llm.to_markdown(pdf_path, pages=pages)
+        except Exception as e:
+            logger.error(f"Error al extraer Markdown de {pdf_path}: {str(e)}")
+            raise
+    
+    def extract_llama_documents(self, pdf_path: str) -> List[Dict[str, Any]]:
+        """
+        Extrae contenido de un PDF y lo convierte en documentos para LlamaIndex.
+        
+        Args:
+            pdf_path: Ruta al archivo PDF
+            
+        Returns:
+            Lista de documentos en formato LlamaIndex
+        """
+        logger.info(f"Extrayendo documentos LlamaIndex de {pdf_path}")
+        try:
+            reader = pymupdf4llm.LlamaMarkdownReader()
+            return reader.load_data(pdf_path)
+        except Exception as e:
+            logger.error(f"Error al extraer documentos LlamaIndex de {pdf_path}: {str(e)}")
+            raise
+
 
     def __init__(
         self,
@@ -211,6 +209,7 @@ class LLMPyMuPDF4LLMAdapter(LLMDocumentPort):
             
         try:
             # Extraer metadatos del PDF usando PyMuPDF
+            import pymupdf
             with pymupdf.open(str(pdf_path)) as doc:
                 pdf_metadata = doc.metadata
                 

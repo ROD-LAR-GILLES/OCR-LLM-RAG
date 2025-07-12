@@ -199,15 +199,15 @@ def display_processing_progress(pdf_path: Path, config: LLMProcessingConfig) -> 
         pdf_path (Path): Archivo que se va a procesar
         config (LLMProcessingConfig): Configuración que se va a usar
     """
-    print(f"\n🔄 Procesando: {pdf_path.name}")
-    print(f"📊 Configuración:")
+    print(f"\n[PROCESSING] Procesando: {pdf_path.name}")
+    print(f"[CONFIG] Configuración:")
     print(f"   • Caso de uso: {config.optimization_target}")
     print(f"   • Tamaño de chunk: {config.chunk_size} caracteres")
     print(f"   • Solapamiento: {config.chunk_overlap} caracteres")
     print(f"   • Chunking semántico: {'[OK]' if config.semantic_chunking else '[NO]'}")
     print(f"   • Preservar estructura: {'[OK]' if config.preserve_structure else '[NO]'}")
     print(f"   • Chunks separados: {'[OK]' if config.save_chunks_separately else '[NO]'}")
-    print("\n⏳ Procesando con pymupdf4llm...")
+    print("\n[INFO] Procesando con pymupdf4llm...")
 
 
 def display_results(result: Dict[str, Any]) -> None:
@@ -223,7 +223,7 @@ def display_results(result: Dict[str, Any]) -> None:
         
         recommendations = result.get("recommendations", [])
         if recommendations:
-            print(f"\n💡 Recomendaciones:")
+            print(f"\n[INFO] Recomendaciones:")
             for rec in recommendations:
                 print(f"   • {rec}")
         return
@@ -234,7 +234,7 @@ def display_results(result: Dict[str, Any]) -> None:
     chunk_info = result.get("chunk_info", {})
     processing_stats = result.get("processing_stats", {})
     
-    print(f"\n📊 Estadísticas del documento:")
+    print(f"\n[STATS] Estadísticas del documento:")
     print(f"   • Chunks generados: {chunk_info.get('total_chunks', 0)}")
     print(f"   • Tamaño promedio de chunk: {processing_stats.get('avg_chunk_size', 0):.0f} caracteres")
     print(f"   • Tokens estimados totales: {processing_stats.get('total_tokens_estimated', 0):.0f}")
@@ -261,7 +261,7 @@ def display_results(result: Dict[str, Any]) -> None:
     # Recomendaciones específicas para LLMs
     recommendations = result.get("recommendations", [])
     if recommendations:
-        print(f"\n💡 Recomendaciones para uso con LLMs:")
+        print(f"\n[INFO] Recomendaciones para uso con LLMs:")
         for rec in recommendations:
             print(f"   • {rec}")
     
@@ -280,7 +280,7 @@ def display_batch_results(batch_result: Dict[str, Any]) -> None:
     """
     stats = batch_result.get("aggregate_stats", {})
     
-    print(f"\n📊 Resumen del procesamiento en lote:")
+    print(f"\n[STATS] Resumen del procesamiento en lote:")
     print(f"   • Documentos totales: {batch_result.get('total_documents', 0)}")
     print(f"   • Exitosos: {batch_result.get('successful', 0)}")
     print(f"   • Fallidos: {batch_result.get('failed', 0)}")
@@ -318,7 +318,7 @@ def process_single_document() -> None:
         display_results(result)
         
     except KeyboardInterrupt:
-        print("\n⚠️ Procesamiento cancelado por el usuario")
+        print("\n[WARNING] Procesamiento cancelado por el usuario")
     except Exception as e:
         print(f"\n[ERROR] Error inesperado: {str(e)}")
 
@@ -365,7 +365,7 @@ def process_batch_documents() -> None:
         display_batch_results(batch_result)
         
     except KeyboardInterrupt:
-        print("\n⚠️ Procesamiento en lote cancelado por el usuario")
+        print("\n[WARNING] Procesamiento en lote cancelado por el usuario")
     except Exception as e:
         print(f"\n[ERROR] Error en procesamiento en lote: {str(e)}")
 
@@ -379,14 +379,14 @@ def show_statistics() -> None:
         print(f"\n[ERROR] Error obteniendo estadísticas: {stats['error']}")
         return
     
-    print(f"\n📊 Estadísticas del directorio de salida:")
+    print(f"\n[STATS] Estadísticas del directorio de salida:")
     print(f"   • Archivos totales: {stats.get('total_files', 0)}")
     print(f"   • Tamaño total: {stats.get('total_size_mb', 0)} MB")
     print(f"   • Directorio: {stats.get('output_directory', 'desconocido')}")
     
     recent_files = stats.get("recent_files", [])
     if recent_files:
-        print(f"\n📝 Archivos recientes:")
+        print(f"\n[FILES] Archivos recientes:")
         for file_name in recent_files:
             print(f"   • {file_name}")
 
@@ -409,7 +409,7 @@ def main_llm_menu() -> None:
                         "batch"
                     ),
                     questionary.Choice(
-                        "📊 Ver estadísticas de procesamiento",
+                        "[STATS] Ver estadísticas de procesamiento",
                         "stats"
                     ),
                     questionary.Choice(
@@ -436,7 +436,7 @@ def main_llm_menu() -> None:
                 print("\n👋 ¡Hasta luego!")
                 break
             else:
-                print("\n⚠️ Opción no válida")
+                print("\n[WARNING] Opción no válida")
                 
         except KeyboardInterrupt:
             print("\n\n👋 ¡Hasta luego!")
@@ -450,7 +450,7 @@ def show_use_case_info() -> None:
     print("\n📚 Información sobre casos de uso:")
     print("-" * 50)
     
-    print("\n🔍 Sistema RAG (Retrieval-Augmented Generation):")
+    print("\n[INFO] Sistema RAG (Retrieval-Augmented Generation):")
     print("   • Chunks de ~1000 caracteres con 20% de solapamiento")
     print("   • Preserva estructura de encabezados para contexto")
     print("   • Metadatos enriquecidos para mejor retrieval")
@@ -468,7 +468,7 @@ def show_use_case_info() -> None:
     print("   • Genera resúmenes automáticos")
     print("   • Ideal para: análisis de contenido, extracción de insights")
     
-    print("\n💡 Tecnología utilizada:")
+    print("\n[INFO] Tecnología utilizada:")
     print("   • pymupdf4llm: Extracción optimizada para LLMs")
     print("   • Markdown estructurado con preservación de jerarquía")
     print("   • Chunking semánticamente coherente")

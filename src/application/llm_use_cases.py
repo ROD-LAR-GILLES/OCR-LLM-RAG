@@ -18,7 +18,7 @@ from typing import Dict, Any, List, Optional
 import json
 import logging
 
-from application.ports import LLMDocumentPort, StoragePort
+from src.application.ports import LLMDocumentPort, StoragePort
 
 
 class ProcessDocumentForLLM:

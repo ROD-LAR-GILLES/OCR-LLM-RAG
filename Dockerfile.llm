@@ -10,6 +10,7 @@ LABEL version="1.0.0"
 # Variables de entorno
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONPATH=/app/src:/app
 
 # Instalar dependencias del sistema para pymupdf4llm
 RUN apt-get update && apt-get install -y \
@@ -46,8 +47,8 @@ RUN mkdir -p /app/pdfs /app/resultado /app/logs
 # Copiar código fuente
 COPY . /app/
 
-# Configurar permisos
-RUN chmod +x /app/interfaces/cli/llm_main.py
+# Configurar permisos para el archivo principal
+RUN chmod +x /app/src/interfaces/cli/llm_main.py
 
 # Crear usuario no root para seguridad
 RUN adduser --disabled-password --gecos '' appuser && \
@@ -58,7 +59,7 @@ USER appuser
 EXPOSE 8000
 
 # Comando por defecto optimizado para LLM
-CMD ["python", "/app/interfaces/cli/llm_main.py"]
+CMD ["python", "/app/src/interfaces/cli/llm_main.py"]
 
 # Healthcheck básico
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \

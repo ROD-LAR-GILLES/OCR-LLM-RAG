@@ -1,6 +1,5 @@
 # docker-compose.llm.yml
 # Docker Compose específico para PDF-to-LLM con pymupdf4llm
-version: '3.8'
 
 services:
   pdf-to-llm:

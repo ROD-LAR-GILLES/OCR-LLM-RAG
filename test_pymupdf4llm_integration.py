@@ -147,7 +147,7 @@ def test_with_sample_pdf():
                 
                 return True
             else:
-                print(f"❌ Procesamiento falló: {result.get('error', 'Error desconocido')}")
+                print(f"[ERROR] Procesamiento falló: {result.get('error', 'Error desconocido')}")
                 return False
                 
     except Exception as e:
@@ -250,13 +250,13 @@ def main():
                 passed += 1
                 print(f"[OK] {name}: PASÓ")
             else:
-                print(f"❌ {name}: FALLÓ")
+                print(f"[ERROR] {name}: FALLÓ")
         except Exception as e:
-            print(f"❌ {name}: ERROR - {e}")
+            print(f"[ERROR] {name}: ERROR - {e}")
             logger.exception(f"Error en prueba {name}")
     
     print(f"\n{'='*60}")
-    print(f"📊 Resumen de pruebas: {passed}/{total} pasaron")
+    print(f"[STATS] Resumen de pruebas: {passed}/{total} pasaron")
     print('='*60)
     
     if passed == total:

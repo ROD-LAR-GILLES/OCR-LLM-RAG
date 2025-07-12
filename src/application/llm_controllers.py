@@ -20,7 +20,7 @@ from dataclasses import dataclass
 
 from application.llm_use_cases import ProcessDocumentForLLM
 from application.ports import LLMDocumentPort, StoragePort
-from adapters.llm_pymupdf4llm_adapter import LLMPyMuPDF4LLMAdapter
+from adapters.llm_pymupdf4llm_adapter import PyMuPDF4LLMAdapter
 from adapters.storage_filesystem import FileStorage
 
 
@@ -232,7 +232,7 @@ class LLMDocumentController:
             # ETAPA 4: Enriquecer resultado con información del controlador
             result["controller_info"] = {
                 "processing_config": config.to_dict(),
-                "adapter_type": "LLMPyMuPDF4LLMAdapter",
+                "adapter_type": "PyMuPDF4LLMAdapter",
                 "output_directory": str(self.output_dir)
             }
             
@@ -343,7 +343,7 @@ class LLMDocumentController:
         Returns:
             LLMDocumentPort: Adaptador configurado
         """
-        return LLMPyMuPDF4LLMAdapter(
+        return PyMuPDF4LLMAdapter(
             chunk_size=config.chunk_size,
             chunk_overlap=config.chunk_overlap,
             preserve_structure=config.preserve_structure,
